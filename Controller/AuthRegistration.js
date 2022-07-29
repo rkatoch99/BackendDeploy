@@ -241,20 +241,43 @@ exports.Token = async (req, res, next) => {
 
 exports.Verify = async (req, res) => {
   try {
-    const token = req.params.password_reset_token;
 
-    console.log(req.params.password_reset_token);
-    if (token) {
-      await jwt.verify(token, process.env.Resetpassword, (err, success) => {
+    const token = req.params.password_reset_token;
+    const findToken = await Registration.findOne({resetLink:token})
+    const data = await  Registration.find({resetLink:null})
+    console.log("data",data)
+    // // console.log(token)
+    // console.log(findToken)
+
+    // // console.log(req.params.password_reset_token);
+
+    // // if(token===null){
+      
+    // // }
+
+    // if (data==null) {
+    //   return res.satus(400).json({error:"Your tokken was expire.."})
+    // }
+    if(token){
+      await jwt.verify(token, process.env.Resetpassword,(err, success) => {
         if (err) {
           return res.status(400).json({ error: "Tokken was not verify..." });
         } else {
           return res
             .status(200)
             .json({ message: "Tokken verify.....", success });
+            
         }
       });
+    }else{
+      findToken.resetLink=null
+      await findToken.save()
+      return res.status(300).json({error:"Your tokken was expire..."})
+
     }
+    
+    
+    
   } catch (err) {
     console.log(err);
   }
